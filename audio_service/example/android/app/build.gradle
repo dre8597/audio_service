@@ -27,9 +27,6 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 android {
     compileSdkVersion 31
 
-    lintOptions {
-        disable 'InvalidPackage'
-    }
 
     defaultConfig {
         applicationId "com.ryanheise.audioserviceexample"
@@ -48,6 +45,10 @@ android {
             shrinkResources true
         }
     }
+    lint {
+        disable 'InvalidPackage'
+    }
+    namespace 'com.ryanheise.audioserviceexample'
 }
 
 flutter {

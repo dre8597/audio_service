@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +18,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -98,7 +100,7 @@ public class AudioService extends MediaBrowserServiceCompat {
 
     static AudioService instance;
     private static PendingIntent contentIntent;
-    private static ServiceListener listener;
+    static ServiceListener listener;
     private static List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
     private static final Map<String, MediaMetadataCompat> mediaMetadataCache = new HashMap<>();
 
@@ -673,7 +675,7 @@ public class AudioService extends MediaBrowserServiceCompat {
 
     private void acquireWakeLock() {
         if (!wakeLock.isHeld())
-            wakeLock.acquire();
+            wakeLock.acquire(10*60*1000L /*10 minutes*/);
     }
 
     private void releaseWakeLock() {
@@ -930,10 +932,7 @@ public class AudioService extends MediaBrowserServiceCompat {
 
         private MediaButton eventToButton(KeyEvent event) {
             switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-            case KeyEvent.KEYCODE_HEADSETHOOK:
-                return MediaButton.media;
-            case KeyEvent.KEYCODE_MEDIA_NEXT:
+                case KeyEvent.KEYCODE_MEDIA_NEXT:
                 return MediaButton.next;
             case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                 return MediaButton.previous;
