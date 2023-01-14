@@ -100,7 +100,7 @@ public class AudioService extends MediaBrowserServiceCompat {
 
     static AudioService instance;
     private static PendingIntent contentIntent;
-    static ServiceListener listener;
+    public static ServiceListener listener;
     private static List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
     private static final Map<String, MediaMetadataCompat> mediaMetadataCache = new HashMap<>();
 
@@ -146,16 +146,16 @@ public class AudioService extends MediaBrowserServiceCompat {
         }
         if (extras != null) {
             for (Object o : extras.keySet()) {
-                String key = (String)o;
+                String key = (String) o;
                 Object value = extras.get(key);
                 if (value instanceof Long) {
-                    builder.putLong(key, (Long)value);
+                    builder.putLong(key, (Long) value);
                 } else if (value instanceof Integer) {
-                    builder.putLong(key, (long)((Integer)value));
+                    builder.putLong(key, (long) ((Integer) value));
                 } else if (value instanceof String) {
-                    builder.putString(key, (String)value);
+                    builder.putString(key, (String) value);
                 } else if (value instanceof Boolean) {
-                    builder.putLong(key, (Boolean)value ? 1 : 0);
+                    builder.putLong(key, (Boolean) value ? 1 : 0);
                 } else if (value instanceof Double) {
                     builder.putString(key, value.toString());
                 }
@@ -188,8 +188,8 @@ public class AudioService extends MediaBrowserServiceCompat {
                         bitmap = getContentResolver().loadThumbnail(
                                 artUri,
                                 new Size(config.artDownscaleWidth == -1
-                                                ? defaultSize.getWidth()
-                                                : config.artDownscaleWidth,
+                                        ? defaultSize.getWidth()
+                                        : config.artDownscaleWidth,
                                         config.artDownscaleHeight == -1
                                                 ? defaultSize.getHeight()
                                                 : config.artDownscaleHeight),
@@ -308,7 +308,7 @@ public class AudioService extends MediaBrowserServiceCompat {
         playing = false;
         processingState = AudioProcessingState.idle;
         mediaSession = new MediaSessionCompat(this, "media-session");
-
+        onSearch();
         configure(new AudioServiceConfig(getApplicationContext()));
 
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
@@ -319,13 +319,13 @@ public class AudioService extends MediaBrowserServiceCompat {
         setSessionToken(mediaSession.getSessionToken());
         mediaSession.setQueue(queue);
 
-        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, AudioService.class.getName());
 
         // Get max available VM memory, exceeding this amount will throw an
         // OutOfMemory exception. Stored in kilobytes as LruCache takes an
         // int in its constructor.
-        final int maxMemory = (int)(Runtime.getRuntime().maxMemory() / 1024);
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
 
         // Use 1/8th of the available memory for this memory cache.
         final int cacheSize = maxMemory / 8;
@@ -399,12 +399,12 @@ public class AudioService extends MediaBrowserServiceCompat {
     public void configure(AudioServiceConfig config) {
         this.config = config;
         notificationChannelId = (config.androidNotificationChannelId != null)
-            ? config.androidNotificationChannelId
-            : getApplication().getPackageName() + ".channel";
+                ? config.androidNotificationChannelId
+                : getApplication().getPackageName() + ".channel";
 
         if (config.activityClassName != null) {
             Context context = getApplicationContext();
-            Intent intent = new Intent((String)null);
+            Intent intent = new Intent((String) null);
             intent.setComponent(new ComponentName(context, config.activityClassName));
             //Intent intent = new Intent(context, config.activityClassName);
             intent.setAction(NOTIFICATION_CLICK_ACTION);
@@ -530,6 +530,7 @@ public class AudioService extends MediaBrowserServiceCompat {
                         if (listener == null) return;
                         listener.onSetVolumeTo(volumeIndex);
                     }
+
                     @Override
                     public void onAdjustVolume(int direction) {
                         if (listener == null) return;
@@ -547,13 +548,20 @@ public class AudioService extends MediaBrowserServiceCompat {
 
     public int getPlaybackState() {
         switch (processingState) {
-        case idle: return PlaybackStateCompat.STATE_NONE;
-        case loading: return PlaybackStateCompat.STATE_CONNECTING;
-        case buffering: return PlaybackStateCompat.STATE_BUFFERING;
-        case ready: return playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
-        case completed: return playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
-        case error: return PlaybackStateCompat.STATE_ERROR;
-        default: return PlaybackStateCompat.STATE_NONE;
+            case idle:
+                return PlaybackStateCompat.STATE_NONE;
+            case loading:
+                return PlaybackStateCompat.STATE_CONNECTING;
+            case buffering:
+                return PlaybackStateCompat.STATE_BUFFERING;
+            case ready:
+                return playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
+            case completed:
+                return playing ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
+            case error:
+                return PlaybackStateCompat.STATE_ERROR;
+            default:
+                return PlaybackStateCompat.STATE_NONE;
         }
     }
 
@@ -586,8 +594,8 @@ public class AudioService extends MediaBrowserServiceCompat {
             builder.addAction(action);
         }
         final MediaStyle style = new MediaStyle()
-            .setMediaSession(mediaSession.getSessionToken())
-            .setShowActionsInCompactView(compactActionIndices);
+                .setMediaSession(mediaSession.getSessionToken())
+                .setShowActionsInCompactView(compactActionIndices);
         if (config.androidNotificationOngoing) {
             style.setShowCancelButton(true);
             style.setCancelButtonIntent(buildMediaButtonPendingIntent(PlaybackStateCompat.ACTION_STOP));
@@ -598,7 +606,7 @@ public class AudioService extends MediaBrowserServiceCompat {
     }
 
     private NotificationManager getNotificationManager() {
-        return (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        return (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     private /*synchronized*/ NotificationCompat.Builder getNotificationBuilder() {
@@ -675,7 +683,7 @@ public class AudioService extends MediaBrowserServiceCompat {
 
     private void acquireWakeLock() {
         if (!wakeLock.isHeld())
-            wakeLock.acquire(10*60*1000L /*10 minutes*/);
+            wakeLock.acquire(10 * 60 * 1000L /*10 minutes*/);
     }
 
     private void releaseWakeLock() {
@@ -725,8 +733,8 @@ public class AudioService extends MediaBrowserServiceCompat {
      * prior Android 11, in which this feature was removed.
      * <p>
      * See:
-     *  - https://developer.android.com/guide/topics/media-apps/working-with-a-media-session#album_artwork
-     *  - https://9to5google.com/2020/08/02/android-11-lockscreen-art/
+     * - https://developer.android.com/guide/topics/media-apps/working-with-a-media-session#album_artwork
+     * - https://9to5google.com/2020/08/02/android-11-lockscreen-art/
      */
     synchronized void setMetadata(MediaMetadataCompat mediaMetadata) {
         String artCacheFilePath = mediaMetadata.getString("artCacheFile");
@@ -760,7 +768,7 @@ public class AudioService extends MediaBrowserServiceCompat {
 
     @Override
     public BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints) {
-        Boolean isRecentRequest = rootHints == null ? null : (Boolean)rootHints.getBoolean(BrowserRoot.EXTRA_RECENT);
+        Boolean isRecentRequest = rootHints == null ? null : (Boolean) rootHints.getBoolean(BrowserRoot.EXTRA_RECENT);
         if (isRecentRequest == null) isRecentRequest = false;
         Bundle extras = config.getBrowsableRootExtras();
         return new BrowserRoot(isRecentRequest ? RECENT_ROOT_ID : BROWSABLE_ROOT_ID, extras);
@@ -803,6 +811,11 @@ public class AudioService extends MediaBrowserServiceCompat {
     }
 
     @Override
+    public void onPlayFromSearch() {
+
+    }
+
+    @Override
     public void onTaskRemoved(Intent rootIntent) {
         if (listener != null) {
             listener.onTaskRemoved();
@@ -810,89 +823,88 @@ public class AudioService extends MediaBrowserServiceCompat {
         super.onTaskRemoved(rootIntent);
     }
 
-    public class MediaSessionCallback extends MediaSessionCompat.Callback {
-        @Override
-        public void onAddQueueItem(MediaDescriptionCompat description) {
-            if (listener == null) return;
-            listener.onAddQueueItem(getMediaMetadata(description.getMediaId()));
-        }
+public class MediaSessionCallback extends MediaSessionCompat.Callback {
+    @Override
+    public void onAddQueueItem(MediaDescriptionCompat description) {
+        if (listener == null) return;
+        listener.onAddQueueItem(getMediaMetadata(description.getMediaId()));
+    }
 
-        @Override
-        public void onAddQueueItem(MediaDescriptionCompat description, int index) {
-            if (listener == null) return;
-            listener.onAddQueueItemAt(getMediaMetadata(description.getMediaId()), index);
-        }
+    @Override
+    public void onAddQueueItem(MediaDescriptionCompat description, int index) {
+        if (listener == null) return;
+        listener.onAddQueueItemAt(getMediaMetadata(description.getMediaId()), index);
+    }
 
-        @Override
-        public void onRemoveQueueItem(MediaDescriptionCompat description) {
-            if (listener == null) return;
-            listener.onRemoveQueueItem(getMediaMetadata(description.getMediaId()));
-        }
+    @Override
+    public void onRemoveQueueItem(MediaDescriptionCompat description) {
+        if (listener == null) return;
+        listener.onRemoveQueueItem(getMediaMetadata(description.getMediaId()));
+    }
 
-        @Override
-        public void onPrepare() {
-            if (listener == null) return;
-            if (!mediaSession.isActive())
-                mediaSession.setActive(true);
-            listener.onPrepare();
-        }
+    @Override
+    public void onPrepare() {
+        if (listener == null) return;
+        if (!mediaSession.isActive())
+            mediaSession.setActive(true);
+        listener.onPrepare();
+    }
 
-        @Override
-        public void onPrepareFromMediaId(String mediaId, Bundle extras) {
-            if (listener == null) return;
-            if (!mediaSession.isActive())
-                mediaSession.setActive(true);
-            listener.onPrepareFromMediaId(mediaId, extras);
-        }
+    @Override
+    public void onPrepareFromMediaId(String mediaId, Bundle extras) {
+        if (listener == null) return;
+        if (!mediaSession.isActive())
+            mediaSession.setActive(true);
+        listener.onPrepareFromMediaId(mediaId, extras);
+    }
 
-        @Override
-        public void onPrepareFromSearch(String query, Bundle extras) {
-            if (listener == null) return;
-            if (!mediaSession.isActive())
-                mediaSession.setActive(true);
-            listener.onPrepareFromSearch(query, extras);
-        }
+    @Override
+    public void onPrepareFromSearch(String query, Bundle extras) {
+        if (listener == null) return;
+        if (!mediaSession.isActive())
+            mediaSession.setActive(true);
+        listener.onPrepareFromSearch(query, extras);
+    }
 
-        @Override
-        public void onPrepareFromUri(Uri uri, Bundle extras) {
-            if (listener == null) return;
-            if (!mediaSession.isActive())
-                mediaSession.setActive(true);
-            listener.onPrepareFromUri(uri, extras);
-        }
+    @Override
+    public void onPrepareFromUri(Uri uri, Bundle extras) {
+        if (listener == null) return;
+        if (!mediaSession.isActive())
+            mediaSession.setActive(true);
+        listener.onPrepareFromUri(uri, extras);
+    }
 
-        @Override
-        public void onPlay() {
-            if (listener == null) return;
-            listener.onPlay();
-        }
+    @Override
+    public void onPlay() {
+        if (listener == null) return;
+        listener.onPlay();
+    }
 
-        @Override
-        public void onPlayFromMediaId(final String mediaId, final Bundle extras) {
-            if (listener == null) return;
-            listener.onPlayFromMediaId(mediaId, extras);
-        }
+    @Override
+    public void onPlayFromMediaId(final String mediaId, final Bundle extras) {
+        if (listener == null) return;
+        listener.onPlayFromMediaId(mediaId, extras);
+    }
 
-        @Override
-        public void onPlayFromSearch(final String query, final Bundle extras) {
-            if (listener == null) return;
-            listener.onPlayFromSearch(query, extras);
-        }
+    @Override
+    public void onPlayFromSearch(final String query, final Bundle extras) {
+        if (listener == null) return;
+        listener.onPlayFromSearch(query, extras);
+    }
 
-        @Override
-        public void onPlayFromUri(final Uri uri, final Bundle extras) {
-            if (listener == null) return;
-            listener.onPlayFromUri(uri, extras);
-        }
+    @Override
+    public void onPlayFromUri(final Uri uri, final Bundle extras) {
+        if (listener == null) return;
+        listener.onPlayFromUri(uri, extras);
+    }
 
-        @Override
-        public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
-            if (listener == null) return false;
-            // TODO: use typesafe version once SDK 33 is released.
-            @SuppressWarnings("deprecation")
-            final KeyEvent event = (KeyEvent)mediaButtonEvent.getExtras().getParcelable(Intent.EXTRA_KEY_EVENT);
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                switch (event.getKeyCode()) {
+    @Override
+    public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
+        if (listener == null) return false;
+        // TODO: use typesafe version once SDK 33 is released.
+        @SuppressWarnings("deprecation") final KeyEvent event = (KeyEvent) mediaButtonEvent.getExtras().getParcelable(Intent.EXTRA_KEY_EVENT);
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
                 case KEYCODE_BYPASS_PLAY:
                     onPlay();
                     break;
@@ -925,165 +937,200 @@ public class AudioService extends MediaBrowserServiceCompat {
                 case KeyEvent.KEYCODE_HEADSETHOOK:
                     listener.onClick(eventToButton(event));
                     break;
-                }
             }
-            return true;
         }
+        return true;
+    }
 
-        private MediaButton eventToButton(KeyEvent event) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_MEDIA_NEXT:
+    private MediaButton eventToButton(KeyEvent event) {
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_MEDIA_NEXT:
                 return MediaButton.next;
             case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                 return MediaButton.previous;
             default:
                 return MediaButton.media;
-            }
-        }
-
-        @Override
-        public void onPause() {
-            if (listener == null) return;
-            listener.onPause();
-        }
-
-        @Override
-        public void onStop() {
-            if (listener == null) return;
-            listener.onStop();
-        }
-
-        @Override
-        public void onSkipToNext() {
-            if (listener == null) return;
-            listener.onSkipToNext();
-        }
-
-        @Override
-        public void onSkipToPrevious() {
-            if (listener == null) return;
-            listener.onSkipToPrevious();
-        }
-
-        @Override
-        public void onFastForward() {
-            if (listener == null) return;
-            listener.onFastForward();
-        }
-
-        @Override
-        public void onRewind() {
-            if (listener == null) return;
-            listener.onRewind();
-        }
-
-        @Override
-        public void onSkipToQueueItem(long id) {
-            if (listener == null) return;
-            listener.onSkipToQueueItem(id);
-        }
-
-        @Override
-        public void onSeekTo(long pos) {
-            if (listener == null) return;
-            listener.onSeekTo(pos);
-        }
-
-        @Override
-        public void onSetRating(RatingCompat rating) {
-            if (listener == null) return;
-            listener.onSetRating(rating);
-        }
-
-        @Override
-        public void onSetPlaybackSpeed(float speed) {
-            if (listener == null) return;
-            listener.onSetPlaybackSpeed(speed);
-        }
-
-        @Override
-        public void onSetCaptioningEnabled(boolean enabled) {
-            if (listener == null) return;
-            listener.onSetCaptioningEnabled(enabled);
-        }
-
-        @Override
-        public void onSetRepeatMode(int repeatMode) {
-            if (listener == null) return;
-            listener.onSetRepeatMode(repeatMode);
-        }
-
-        @Override
-        public void onSetShuffleMode(int shuffleMode) {
-            if (listener == null) return;
-            listener.onSetShuffleMode(shuffleMode);
-        }
-
-        @Override
-        public void onCustomAction(String action, Bundle extras) {
-            if (listener == null) return;
-            listener.onCustomAction(action, extras);
-        }
-
-        @Override
-        public void onSetRating(RatingCompat rating, Bundle extras) {
-            if (listener == null) return;
-            listener.onSetRating(rating, extras);
-        }
-
-        //
-        // NON-STANDARD METHODS
-        //
-
-        public void onPlayMediaItem(final MediaDescriptionCompat description) {
-            if (listener == null) return;
-            listener.onPlayMediaItem(getMediaMetadata(description.getMediaId()));
         }
     }
 
-    public interface ServiceListener {
-        //BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints);
-        void onLoadChildren(String parentMediaId, Result<List<MediaBrowserCompat.MediaItem>> result, Bundle options);
-        void onLoadItem(String itemId, Result<MediaBrowserCompat.MediaItem> result);
-        void onSearch(String query, Bundle extras, Result<List<MediaBrowserCompat.MediaItem>> result);
-        void onClick(MediaButton mediaButton);
-        void onPrepare();
-        void onPrepareFromMediaId(String mediaId, Bundle extras);
-        void onPrepareFromSearch(String query, Bundle extras);
-        void onPrepareFromUri(Uri uri, Bundle extras);
-        void onPlay();
-        void onPlayFromMediaId(String mediaId, Bundle extras);
-        void onPlayFromSearch(String query, Bundle extras);
-        void onPlayFromUri(Uri uri, Bundle extras);
-        void onSkipToQueueItem(long id);
-        void onPause();
-        void onSkipToNext();
-        void onSkipToPrevious();
-        void onFastForward();
-        void onRewind();
-        void onStop();
-        void onSeekTo(long pos);
-        void onSetRating(RatingCompat rating);
-        void onSetRating(RatingCompat rating, Bundle extras);
-        void onSetRepeatMode(int repeatMode);
-        void onSetShuffleMode(int shuffleMode);
-        void onCustomAction(String action, Bundle extras);
-        void onAddQueueItem(MediaMetadataCompat metadata);
-        void onAddQueueItemAt(MediaMetadataCompat metadata, int index);
-        void onRemoveQueueItem(MediaMetadataCompat metadata);
-        void onRemoveQueueItemAt(int index);
-        void onSetPlaybackSpeed(float speed);
-        void onSetCaptioningEnabled(boolean enabled);
-        void onSetVolumeTo(int volumeIndex);
-        void onAdjustVolume(int direction);
-
-        //
-        // NON-STANDARD METHODS
-        //
-
-        void onPlayMediaItem(MediaMetadataCompat metadata);
-        void onTaskRemoved();
-        void onClose();
-        void onDestroy();
+    @Override
+    public void onPause() {
+        if (listener == null) return;
+        listener.onPause();
     }
+
+    @Override
+    public void onStop() {
+        if (listener == null) return;
+        listener.onStop();
+    }
+
+    @Override
+    public void onSkipToNext() {
+        if (listener == null) return;
+        listener.onSkipToNext();
+    }
+
+    @Override
+    public void onSkipToPrevious() {
+        if (listener == null) return;
+        listener.onSkipToPrevious();
+    }
+
+    @Override
+    public void onFastForward() {
+        if (listener == null) return;
+        listener.onFastForward();
+    }
+
+    @Override
+    public void onRewind() {
+        if (listener == null) return;
+        listener.onRewind();
+    }
+
+    @Override
+    public void onSkipToQueueItem(long id) {
+        if (listener == null) return;
+        listener.onSkipToQueueItem(id);
+    }
+
+    @Override
+    public void onSeekTo(long pos) {
+        if (listener == null) return;
+        listener.onSeekTo(pos);
+    }
+
+    @Override
+    public void onSetRating(RatingCompat rating) {
+        if (listener == null) return;
+        listener.onSetRating(rating);
+    }
+
+    @Override
+    public void onSetPlaybackSpeed(float speed) {
+        if (listener == null) return;
+        listener.onSetPlaybackSpeed(speed);
+    }
+
+    @Override
+    public void onSetCaptioningEnabled(boolean enabled) {
+        if (listener == null) return;
+        listener.onSetCaptioningEnabled(enabled);
+    }
+
+    @Override
+    public void onSetRepeatMode(int repeatMode) {
+        if (listener == null) return;
+        listener.onSetRepeatMode(repeatMode);
+    }
+
+    @Override
+    public void onSetShuffleMode(int shuffleMode) {
+        if (listener == null) return;
+        listener.onSetShuffleMode(shuffleMode);
+    }
+
+    @Override
+    public void onCustomAction(String action, Bundle extras) {
+        if (listener == null) return;
+        listener.onCustomAction(action, extras);
+    }
+
+    @Override
+    public void onSetRating(RatingCompat rating, Bundle extras) {
+        if (listener == null) return;
+        listener.onSetRating(rating, extras);
+    }
+
+    //
+    // NON-STANDARD METHODS
+    //
+
+    public void onPlayMediaItem(final MediaDescriptionCompat description) {
+        if (listener == null) return;
+        listener.onPlayMediaItem(getMediaMetadata(description.getMediaId()));
+    }
+}
+
+public interface ServiceListener {
+    //BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints);
+    void onLoadChildren(String parentMediaId, Result<List<MediaBrowserCompat.MediaItem>> result, Bundle options);
+
+    void onLoadItem(String itemId, Result<MediaBrowserCompat.MediaItem> result);
+
+    void onSearch(String query, Bundle extras, Result<List<MediaBrowserCompat.MediaItem>> result);
+
+    void onClick(MediaButton mediaButton);
+
+    void onPrepare();
+
+    void onPrepareFromMediaId(String mediaId, Bundle extras);
+
+    void onPrepareFromSearch(String query, Bundle extras);
+
+    void onPrepareFromUri(Uri uri, Bundle extras);
+
+    void onPlay();
+
+    void onPlayFromMediaId(String mediaId, Bundle extras);
+
+    void onPlayFromSearch(String query, Bundle extras);
+
+    void onPlayFromUri(Uri uri, Bundle extras);
+
+    void onSkipToQueueItem(long id);
+
+    void onPause();
+
+    void onSkipToNext();
+
+    void onSkipToPrevious();
+
+    void onFastForward();
+
+    void onRewind();
+
+    void onStop();
+
+    void onSeekTo(long pos);
+
+    void onSetRating(RatingCompat rating);
+
+    void onSetRating(RatingCompat rating, Bundle extras);
+
+    void onSetRepeatMode(int repeatMode);
+
+    void onSetShuffleMode(int shuffleMode);
+
+    void onCustomAction(String action, Bundle extras);
+
+    void onAddQueueItem(MediaMetadataCompat metadata);
+
+    void onAddQueueItemAt(MediaMetadataCompat metadata, int index);
+
+    void onRemoveQueueItem(MediaMetadataCompat metadata);
+
+    void onRemoveQueueItemAt(int index);
+
+    void onSetPlaybackSpeed(float speed);
+
+    void onSetCaptioningEnabled(boolean enabled);
+
+    void onSetVolumeTo(int volumeIndex);
+
+    void onAdjustVolume(int direction);
+
+    //
+    // NON-STANDARD METHODS
+    //
+
+    void onPlayMediaItem(MediaMetadataCompat metadata);
+
+    void onTaskRemoved();
+
+    void onClose();
+
+    void onDestroy();
+}
 }
