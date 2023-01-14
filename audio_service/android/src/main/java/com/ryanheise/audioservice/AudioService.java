@@ -308,7 +308,6 @@ public class AudioService extends MediaBrowserServiceCompat {
         playing = false;
         processingState = AudioProcessingState.idle;
         mediaSession = new MediaSessionCompat(this, "media-session");
-        onSearch();
         configure(new AudioServiceConfig(getApplicationContext()));
 
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
@@ -808,11 +807,6 @@ public class AudioService extends MediaBrowserServiceCompat {
             return;
         }
         listener.onSearch(query, extras, result);
-    }
-
-    @Override
-    public void onPlayFromSearch() {
-
     }
 
     @Override
